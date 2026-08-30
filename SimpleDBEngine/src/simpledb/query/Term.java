@@ -14,14 +14,25 @@ public class Term {
    
    /**
     * Create a new term that compares two expressions
-    * for equality.
+    * using the specified operator.
     * @param lhs  the LHS expression
+    * @param op   the comparison operator (=, <, <=, >, >=, <>, !=)
     * @param rhs  the RHS expression
     */
-   public Term(Expression lhs, String op,Expression rhs) {
+   public Term(Expression lhs, String op, Expression rhs) {
       this.lhs = lhs;
       this.op = op;
       this.rhs = rhs;
+   }
+
+   /**
+    * Create a new equality term, keeping the original
+    * SimpleDB constructor signature.
+    * @param lhs  the LHS expression
+    * @param rhs  the RHS expression
+    */
+   public Term(Expression lhs, Expression rhs) {
+      this(lhs, "=", rhs);
    }
    
    /**
@@ -34,20 +45,21 @@ public class Term {
    public boolean isSatisfied(Scan s) {
       Constant lhsval = lhs.evaluate(s);
       Constant rhsval = rhs.evaluate(s);
+      int cmp = lhsval.compareTo(rhsval);
       switch (op) {
          case "=":
-            return lhsval.equals(rhsval);
+            return cmp == 0;
          case "!=":
          case "<>":
-            return !lhsval.equals(rhsval);
+            return cmp != 0;
          case "<":
-            return lhsval.compareTo(rhsval) < 0;
-         case ">":
-            return lhsval.compareTo(rhsval) > 0;
+            return cmp < 0;
          case "<=":
-            return lhsval.compareTo(rhsval) <= 0;
+            return cmp <= 0;
+         case ">":
+            return cmp > 0;
          case ">=":
-            return lhsval.compareTo(rhsval) >= 0;
+            return cmp >= 0;
          default:
             throw new RuntimeException("Unknown operator: " + op);
       }
@@ -93,6 +105,8 @@ public class Term {
     * @return either the constant or null
     */
    public Constant equatesWithConstant(String fldname) {
+      if (!op.equals("="))
+         return null;
       if (lhs.isFieldName() &&
           lhs.asFieldName().equals(fldname) &&
           !rhs.isFieldName())
@@ -114,6 +128,8 @@ public class Term {
     * @return either the name of the other field, or null
     */
    public String equatesWithField(String fldname) {
+      if (!op.equals("="))
+         return null;
       if (lhs.isFieldName() &&
           lhs.asFieldName().equals(fldname) &&
           rhs.isFieldName())

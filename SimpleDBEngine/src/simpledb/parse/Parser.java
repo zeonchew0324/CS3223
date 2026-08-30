@@ -242,6 +242,7 @@ public class Parser {
       String fldname = field();
       lex.eatDelim(')');
 
+      // optional "using <hash|btree>" clause; defaults to btree
       String idxtype = "btree";
       if (lex.matchKeyword("using")) {
          lex.eatKeyword("using");
@@ -249,8 +250,10 @@ public class Parser {
             lex.eatKeyword("hash");
             idxtype = "hash";
          }
-         else
+         else if (lex.matchKeyword("btree"))
             lex.eatKeyword("btree");
+         else
+            throw new BadSyntaxException();
       }
       return new CreateIndexData(idxname, tblname, fldname, idxtype);
    }

@@ -44,9 +44,10 @@ class IndexMgr {
     * @param idxname the name of the index
     * @param tblname the name of the indexed table
     * @param fldname the name of the indexed field
+    * @param idxtype the type of the index ("hash" or "btree")
     * @param tx the calling transaction
     */
-   public void createIndex(String idxname, String tblname, String fldname, Transaction tx, String idxtype) {
+   public void createIndex(String idxname, String tblname, String fldname, String idxtype, Transaction tx) {
       TableScan ts = new TableScan(tx, "idxcat", layout);
       ts.insert();
       ts.setString("indexname", idxname);
@@ -68,14 +69,14 @@ class IndexMgr {
       TableScan ts = new TableScan(tx, "idxcat", layout);
       while (ts.next())
          if (ts.getString("tablename").equals(tblname)) {
-         String idxname = ts.getString("indexname");
-         String fldname = ts.getString("fieldname");
-         Layout tblLayout = tblmgr.getLayout(tblname, tx);
-         StatInfo tblsi = statmgr.getStatInfo(tblname, tblLayout, tx);
-         String idxtype = ts.getString("indextype");
-         IndexInfo ii = new IndexInfo(idxname, fldname, tblLayout.schema(), tx, tblsi, idxtype);
-         result.put(fldname, ii);
-      }
+            String idxname = ts.getString("indexname");
+            String fldname = ts.getString("fieldname");
+            String idxtype = ts.getString("indextype");
+            Layout tblLayout = tblmgr.getLayout(tblname, tx);
+            StatInfo tblsi = statmgr.getStatInfo(tblname, tblLayout, tx);
+            IndexInfo ii = new IndexInfo(idxname, fldname, idxtype, tblLayout.schema(), tx, tblsi);
+            result.put(fldname, ii);
+         }
       ts.close();
       return result;
    }

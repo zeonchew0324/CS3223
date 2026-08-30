@@ -115,7 +115,7 @@ public class IndexUpdatePlanner implements UpdatePlanner {
    }
    
    public int executeCreateIndex(CreateIndexData data, Transaction tx) {
-      mdm.createIndex(data.indexName(), data.tableName(), data.fieldName(), tx, data.indexType());
+      mdm.createIndex(data.indexName(), data.tableName(), data.fieldName(), data.indexType(), tx);
       IndexInfo i = mdm.getIndexInfo(data.tableName(), tx).get(data.fieldName());
       Index idx = i.open();
       Plan p = new TablePlan(tx, data.tableName(), mdm);
