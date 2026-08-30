@@ -9,7 +9,6 @@ import simpledb.query.*;
  * @author Edward Sciore
  */
 public class RecordComparator implements Comparator<Scan> {
-   private List<String> fields;
    private LinkedHashMap<String, String> sortFields;
    
    /**

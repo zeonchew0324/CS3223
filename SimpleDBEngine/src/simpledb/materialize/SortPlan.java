@@ -22,11 +22,22 @@ public class SortPlan implements Plan {
     * @param sortfields the fields to sort by
     * @param tx the calling transaction
     */
-   public SortPlan(Transaction tx, Plan p, LinkedHashMap<String, String> sortfields) {
+   public SortPlan(Transaction tx, Plan p, List<String> sortfields) {
       this.tx = tx;
       this.p = p;
       sch = p.schema();
       LinkedHashMap<String,String> map = new LinkedHashMap<>();
+      for (String f : sortfields)
+         map.put(f, "asc");
+      comp = new RecordComparator(map);
+   }
+
+
+   // Used by BasicQueryPlanner for order by: field -> "asc"/"desc"
+   public SortPlan(Transaction tx, Plan p, LinkedHashMap<String, String> sortfields) {
+      this.tx = tx;
+      this.p = p;
+      sch = p.schema();
       comp = new RecordComparator(sortfields);
    }
    

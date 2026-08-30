@@ -48,7 +48,7 @@ public class BasicQueryPlanner implements QueryPlanner {
       p = new ProjectPlan(p, data.fields());
 
       // Step 5: new sort plannn 
-      if (data.sortFields() != null) {
+      if (!data.sortFields().isEmpty()) {
          p = new SortPlan(tx, p, data.sortFields());
       }
       
