@@ -139,7 +139,10 @@ public class Lexer {
    }
 
    /**
-    * newly added tool to recognize the new operators
+    * Throws an exception if the current token is not a
+    * comparison operator (=, <, <=, >, >=, <>, !=).
+    * Otherwise, returns the operator and moves to the next token.
+    * @return the string value of the operator
     */
    public String eatOpr() {
       if (matchDelim('=')) {
