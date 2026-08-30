@@ -65,7 +65,34 @@ public class Parser {
          lex.eatKeyword("where");
          pred = predicate();
       }
-      return new QueryData(fields, tables, pred);
+
+      LinkedHashMap<String, String> sortFields = new LinkedHashMap<>();
+      if (lex.matchKeyword("order")) {
+         lex.eatKeyword("order");
+         lex.eatKeyword("by");
+         sortFields = sortList();
+
+      }
+
+      return new QueryData(fields, tables, pred, sortFields);
+   }
+
+   private LinkedHashMap<String, String> sortList() {
+      LinkedHashMap<String, String> L = new LinkedHashMap<>();
+      String field = field();
+      String order = "asc"; // default order
+      if (lex.matchKeyword("asc")) {
+         lex.eatKeyword("asc");
+      } else if (lex.matchKeyword("desc")) {
+         lex.eatKeyword("desc");
+         order = "desc";
+      }
+      L.put(field, order);
+      if (lex.matchDelim(',')) {
+         lex.eatDelim(',');
+         L.putAll(sortList());
+      }
+      return L;
    }
    
    private List<String> selectList() {
@@ -231,7 +258,7 @@ public class Parser {
    }
    
    
-//  Method for parsing create index commands
+   //  Method for parsing create index commands
    
    public CreateIndexData createIndex() {
       lex.eatKeyword("index");
@@ -257,5 +284,6 @@ public class Parser {
       }
       return new CreateIndexData(idxname, tblname, fldname, idxtype);
    }
+
 }
 

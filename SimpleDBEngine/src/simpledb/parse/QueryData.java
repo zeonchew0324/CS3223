@@ -12,14 +12,20 @@ public class QueryData {
    private List<String> fields;
    private Collection<String> tables;
    private Predicate pred;
+   private LinkedHashMap<String, String> sortFields;
    
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(List<String> fields, Collection<String> tables, Predicate pred) {
+   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, LinkedHashMap<String, String> sortFields) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
+      this.sortFields = sortFields;
+   }
+
+   public LinkedHashMap<String, String> sortFields() {
+      return sortFields;
    }
    
    /**
