@@ -1,0 +1,3 @@
+# SimpleDB runtime scratch files created by SortPlan/TempTable during sorted queries
+SimpleDBEngine/studentdb/temp*.tbl
+SimpleDBClients/studentdb/temp*.tbl
