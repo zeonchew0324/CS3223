@@ -138,40 +138,55 @@ public class Lexer {
       return s;
    }
 
-   /**
-    * newly added tool to recognize the new operators
-    */
    public String eatOpr() {
+      String opr;
+
       if (matchDelim('=')) {
-         eatDelim('='); 
-         return "=";
-      } else if (matchDelim('<')) {
-         eatDelim('<');
+         opr = "=";
+         nextToken();
+      }
+      else if (matchDelim('<')) {
+         nextToken();
+
          if (matchDelim('=')) {
-            eatDelim('=');
-            return "<=";
-         } else if (matchDelim('>')) {
-            eatDelim('>');
-            return "<>";
+            opr = "<=";
+            nextToken();
          }
-         return "<";
-      } else if (matchDelim('>')) {
-         eatDelim('>');
+         else if (matchDelim('>')) {
+            opr = "<>";
+            nextToken();
+         }
+         else {
+            opr = "<";
+         }
+      }
+      else if (matchDelim('>')) {
+         nextToken();
+
          if (matchDelim('=')) {
-            eatDelim('=');
-            return ">=";
+            opr = ">=";
+            nextToken();
          }
-         return ">";
-      } else if (matchDelim('!')) {
-         eatDelim('!');
+         else {
+            opr = ">";
+         }
+      }
+      else if (matchDelim('!')) {
+         nextToken();
+
          if (matchDelim('=')) {
-            eatDelim('=');
-            return "!=";
+            opr = "!=";
+            nextToken();
          }
-         throw new BadSyntaxException();
-      } else {
+         else {
+            throw new BadSyntaxException();
+         }
+      }
+      else {
          throw new BadSyntaxException();
       }
+      
+      return opr;
    }
    
    private void nextToken() {
@@ -186,7 +201,7 @@ public class Lexer {
    private void initKeywords() {
       keywords = Arrays.asList("select", "from", "where", "and",
                                "insert", "into", "values", "delete", "update", "set", 
-                               "create", "table", "int", "varchar", "view", "as", "index", "on", 
+                               "create", "table", "int", "varchar", "view", "as", "index", "on",
                                "using", "hash", "btree");
    }
 }

@@ -30,10 +30,9 @@ public class IndexInfo {
     * @param tx the calling transaction
     * @param tblSchema the schema of the table
     * @param si the statistics for the table
-    * @param idxtype the type of the index ("hash" or "btree")
     */
-   public IndexInfo(String idxname, String fldname, Schema tblSchema,
-                    Transaction tx,  StatInfo si, String idxtype) {
+   public IndexInfo(String idxname, String fldname, String idxtype, Schema tblSchema,
+                    Transaction tx,  StatInfo si) {
       this.idxname = idxname;
       this.fldname = fldname;
       this.idxtype = idxtype;
@@ -48,9 +47,17 @@ public class IndexInfo {
     * @return the Index object associated with this information
     */
    public Index open() {
-      if (idxtype.equals("hash"))
+      // return new HashIndex(tx, idxname, idxLayout);
+      // return new BTreeIndex(tx, idxname, idxLayout);
+      if (idxtype.equals("hash")) {
          return new HashIndex(tx, idxname, idxLayout);
-      return new BTreeIndex(tx, idxname, idxLayout);
+      }
+      else if (idxtype.equals("btree")) {
+         return new BTreeIndex(tx, idxname, idxLayout);
+      }
+      else {
+         throw new RuntimeException("Unknown index type: " + idxtype);
+      }
    }
    
    /**
@@ -67,8 +74,17 @@ public class IndexInfo {
    public int blocksAccessed() {
       int rpb = tx.blockSize() / idxLayout.slotSize();
       int numblocks = si.recordsOutput() / rpb;
-      return HashIndex.searchCost(numblocks, rpb);
-//    return BTreeIndex.searchCost(numblocks, rpb);
+      // return HashIndex.searchCost(numblocks, rpb);
+      // return BTreeIndex.searchCost(numblocks, rpb);
+      if (idxtype.equals("hash")) {
+         return HashIndex.searchCost(numblocks, rpb);
+      }
+      else if (idxtype.equals("btree")) {
+         return BTreeIndex.searchCost(numblocks, rpb);
+      }
+      else {
+         throw new RuntimeException("Unknown index type: " + idxtype);
+      }
    }
    
    /**

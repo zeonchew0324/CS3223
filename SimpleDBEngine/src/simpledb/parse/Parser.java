@@ -35,13 +35,12 @@ public class Parser {
       else
          return new Expression(constant());
    }
-
-   // Change this for inequality 
+   
    public Term term() {
       Expression lhs = expression();
-      String op = lex.eatOpr();
+      String opr = lex.eatOpr();
       Expression rhs = expression();
-      return new Term(lhs, op, rhs);
+      return new Term(lhs, opr, rhs);
    }
    
    public Predicate predicate() {
@@ -242,16 +241,21 @@ public class Parser {
       String fldname = field();
       lex.eatDelim(')');
 
-      String idxtype = "btree";
-      if (lex.matchKeyword("using")) {
-         lex.eatKeyword("using");
-         if (lex.matchKeyword("hash")) {
-            lex.eatKeyword("hash");
-            idxtype = "hash";
-         }
-         else
-            lex.eatKeyword("btree");
+      lex.eatKeyword("using");
+
+      String idxtype;
+      if (lex.matchKeyword("hash")) {
+         lex.eatKeyword("hash");
+         idxtype = "hash";
       }
+      else if (lex.matchKeyword("btree")) {
+         lex.eatKeyword("btree");
+         idxtype = "btree";
+      }
+      else {
+         throw new BadSyntaxException();
+      }
+
       return new CreateIndexData(idxname, tblname, fldname, idxtype);
    }
 }

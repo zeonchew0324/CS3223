@@ -33,13 +33,12 @@ public class MetadataMgr {
       return viewmgr.getViewDef(viewname, tx);
    }
    
-   public void createIndex(String idxname, String tblname, String fldname, Transaction tx, String idxtype) {
-      idxmgr.createIndex(idxname, tblname, fldname, tx, idxtype);
+   public void createIndex(String idxname, String tblname, String fldname, String idxtype, Transaction tx) {
+      idxmgr.createIndex(idxname, tblname, fldname, idxtype, tx);
    }
 
-   // overload keeping the original signature; defaults to a btree index
    public void createIndex(String idxname, String tblname, String fldname, Transaction tx) {
-      createIndex(idxname, tblname, fldname, tx, "btree");
+      idxmgr.createIndex(idxname, tblname, fldname, "hash", tx);
    }
    
    public Map<String,IndexInfo> getIndexInfo(String tblname, Transaction tx) {
