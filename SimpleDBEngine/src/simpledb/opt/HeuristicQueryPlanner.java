@@ -3,6 +3,7 @@ package simpledb.opt;
 import java.util.*;
 import simpledb.tx.Transaction;
 import simpledb.metadata.MetadataMgr;
+import simpledb.materialize.SortPlan;
 import simpledb.parse.QueryData;
 import simpledb.plan.*;
 
@@ -11,7 +12,6 @@ import simpledb.plan.*;
  * @author Edward Sciore
  */
 public class HeuristicQueryPlanner implements QueryPlanner {
-   private Collection<TablePlanner> tableplanners = new ArrayList<>();
    private MetadataMgr mdm;
    
    public HeuristicQueryPlanner(MetadataMgr mdm) {
@@ -25,32 +25,42 @@ public class HeuristicQueryPlanner implements QueryPlanner {
     * to be first in the join order.
     * H2. Add the table to the join order which
     * results in the smallest output.
+    * The join algorithm used at each step (index join, sort-merge join
+    * or nested-loops join) is chosen by the TablePlanner.
+    * The chosen access path of every table is printed so that the
+    * plan can be inspected.
     */
    public Plan createPlan(QueryData data, Transaction tx) {
       
       // Step 1:  Create a TablePlanner object for each mentioned table
+      Collection<TablePlanner> tableplanners = new ArrayList<>();
       for (String tblname : data.tables()) {
          TablePlanner tp = new TablePlanner(tblname, data.pred(), tx, mdm);
          tableplanners.add(tp);
       }
       
       // Step 2:  Choose the lowest-size plan to begin the join order
-      Plan currentplan = getLowestSelectPlan();
+      Plan currentplan = getLowestSelectPlan(tableplanners);
       
       // Step 3:  Repeatedly add a plan to the join order
       while (!tableplanners.isEmpty()) {
-         Plan p = getLowestJoinPlan(currentplan);
+         Plan p = getLowestJoinPlan(tableplanners, currentplan);
          if (p != null)
             currentplan = p;
          else  // no applicable join
-            currentplan = getLowestProductPlan(currentplan);
+            currentplan = getLowestProductPlan(tableplanners, currentplan);
       }
       
-      // Step 4.  Project on the field names and return
-      return new ProjectPlan(currentplan, data.fields());
+      // Step 4.  Project on the field names
+      Plan result = new ProjectPlan(currentplan, data.fields());
+
+      // Step 5.  Sort the result if an order by clause was given
+      if (data.sortFields() != null && !data.sortFields().isEmpty())
+         result = new SortPlan(tx, result, data.sortFields());
+      return result;
    }
    
-   private Plan getLowestSelectPlan() {
+   private Plan getLowestSelectPlan(Collection<TablePlanner> tableplanners) {
       TablePlanner besttp = null;
       Plan bestplan = null;
       for (TablePlanner tp : tableplanners) {
@@ -61,10 +71,11 @@ public class HeuristicQueryPlanner implements QueryPlanner {
          }
       }
       tableplanners.remove(besttp);
+      System.out.println("[plan] " + besttp.description());
       return bestplan;
    }
    
-   private Plan getLowestJoinPlan(Plan current) {
+   private Plan getLowestJoinPlan(Collection<TablePlanner> tableplanners, Plan current) {
       TablePlanner besttp = null;
       Plan bestplan = null;
       for (TablePlanner tp : tableplanners) {
@@ -74,12 +85,14 @@ public class HeuristicQueryPlanner implements QueryPlanner {
             bestplan = plan;
          }
       }
-      if (bestplan != null)
+      if (bestplan != null) {
          tableplanners.remove(besttp);
+         System.out.println("[plan] " + besttp.description());
+      }
       return bestplan;
    }
    
-   private Plan getLowestProductPlan(Plan current) {
+   private Plan getLowestProductPlan(Collection<TablePlanner> tableplanners, Plan current) {
       TablePlanner besttp = null;
       Plan bestplan = null;
       for (TablePlanner tp : tableplanners) {
@@ -90,6 +103,7 @@ public class HeuristicQueryPlanner implements QueryPlanner {
          }
       }
       tableplanners.remove(besttp);
+      System.out.println("[plan] " + besttp.description());
       return bestplan;
    }
 
