@@ -137,31 +137,6 @@ public class Predicate {
       return null;
    }
 
-   /**
-    * Return the subpredicate consisting of every term except
-    * the equality term "F1=F2" (written in either order) between
-    * the two specified fields.
-    * A join operator that enforces that equality itself (such as
-    * an index join or a merge join) uses this method to obtain the
-    * residual predicate that still has to be checked by a select.
-    * @param fld1 one field of the equality
-    * @param fld2 the other field of the equality
-    * @return the residual predicate, or null if no terms remain
-    */
-   public Predicate withoutEquality(String fld1, String fld2) {
-      Predicate result = new Predicate();
-      for (Term t : terms) {
-         String other = t.equatesWithField(fld1);
-         if (other != null && other.equals(fld2))
-            continue;
-         result.terms.add(t);
-      }
-      if (result.terms.size() == 0)
-         return null;
-      else
-         return result;
-   }
-
    public String toString() {
       Iterator<Term> iter = terms.iterator();
       if (!iter.hasNext()) 

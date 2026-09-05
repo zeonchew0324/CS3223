@@ -12,7 +12,7 @@ import java.util.*;
  * @author Edward Sciore
  */
 public class MergeJoinPlan implements Plan {
-   private SortPlan p1, p2;
+   private Plan p1, p2;
    private String fldname1, fldname2;
    private Schema sch = new Schema();
    
@@ -51,21 +51,18 @@ public class MergeJoinPlan implements Plan {
    }
    
    /**
-    * Return the estimated number of block accesses required to
-    * mergejoin the two inputs.
-    * The merge itself is a single pass through each sorted
-    * (materialized) table, so that part of the cost is the sum
-    * of their block counts.
-    * Unlike the original SimpleDB estimate, the one-time cost of
-    * sorting each input (see SortPlan.preprocessingCost) is added
-    * as well, so that the query planner can compare a merge join
-    * fairly against join algorithms that need no preprocessing.
-    * <pre> B(mergejoin(p1,p2)) = sort(p1) + sort(p2) + B(sorted p1) + B(sorted p2) </pre>
+    * Return the number of block acceses required to
+    * mergejoin the sorted tables.
+    * Since a mergejoin can be preformed with a single
+    * pass through each table, the method returns
+    * the sum of the block accesses of the 
+    * materialized sorted tables.
+    * It does <i>not</i> include the one-time cost
+    * of materializing and sorting the records.
     * @see simpledb.plan.Plan#blocksAccessed()
     */
    public int blocksAccessed() {
-      return p1.preprocessingCost() + p2.preprocessingCost()
-           + p1.blocksAccessed() + p2.blocksAccessed();
+      return p1.blocksAccessed() + p2.blocksAccessed();
    }
    
    /**

@@ -69,10 +69,7 @@ public class IndexInfo {
     */
    public int blocksAccessed() {
       int rpb = tx.blockSize() / idxLayout.slotSize();
-      // round up, and never below one block: a small table's index still
-      // occupies a block, and log(0) in the btree cost would otherwise
-      // overflow to a large negative estimate.
-      int numblocks = Math.max(1, (si.recordsOutput() + rpb - 1) / rpb);
+      int numblocks = si.recordsOutput() / rpb;
       if (idxtype.equals("hash"))
          return HashIndex.searchCost(numblocks, rpb);
       else if (idxtype.equals("btree"))

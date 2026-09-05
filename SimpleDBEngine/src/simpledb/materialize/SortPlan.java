@@ -51,12 +51,6 @@ public class SortPlan implements Plan {
       Scan src = p.open();
       List<TempTable> runs = splitIntoRuns(src);
       src.close();
-      if (runs.isEmpty()) {
-         // the input has no records: give SortScan one empty run
-         // so that an empty (e.g. fully filtered) input can still be
-         // sorted or merge-joined instead of failing.
-         runs.add(new TempTable(tx, sch));
-      }
       while (runs.size() > 2)
          runs = doAMergeIteration(runs);
       return new SortScan(runs, comp);
@@ -76,30 +70,6 @@ public class SortPlan implements Plan {
       return mp.blocksAccessed();
    }
    
-   /**
-    * Estimate the one-time preprocessing cost of sorting the input,
-    * which blocksAccessed() deliberately leaves out.
-    * The input is read once and written out as the initial runs;
-    * then each merge pass reads and writes every materialized block.
-    * SimpleDB starts a new run whenever the input order descends,
-    * so the initial number of runs is estimated as R/2, and passes
-    * continue until at most two runs remain (the final two runs are
-    * merged on the fly by SortScan, which blocksAccessed() counts).
-    * <pre> cost = B(p) + M + 2*M*passes </pre>
-    * where M is the number of blocks in the materialized table.
-    * @return the estimated number of block accesses spent sorting
-    */
-   public int preprocessingCost() {
-      int m = blocksAccessed();
-      int runs = Math.max(1, p.recordsOutput() / 2);
-      int passes = 0;
-      while (runs > 2) {
-         runs = (runs + 1) / 2;
-         passes++;
-      }
-      return p.blocksAccessed() + m + (2 * m * passes);
-   }
-
    /**
     * Return the number of records in the sorted table,
     * which is the same as in the underlying query.
