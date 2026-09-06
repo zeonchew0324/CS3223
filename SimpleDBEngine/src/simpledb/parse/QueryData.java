@@ -12,14 +12,16 @@ public class QueryData {
    private List<String> fields;
    private Collection<String> tables;
    private Predicate pred;
+   private Map<String, Boolean> sortFields;
    
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(List<String> fields, Collection<String> tables, Predicate pred) {
+   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, Map<String, Boolean> sortFields) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
+      this.sortFields = sortFields;
    }
    
    /**
@@ -46,6 +48,10 @@ public class QueryData {
    public Predicate pred() {
       return pred;
    }
+
+   public Map<String, Boolean> sortFields() {
+      return sortFields;
+   }
    
    public String toString() {
       String result = "select ";
@@ -59,6 +65,28 @@ public class QueryData {
       String predstring = pred.toString();
       if (!predstring.equals(""))
          result += " where " + predstring;
+
+      if (!sortFields.isEmpty()) {
+         result += " order by ";
+
+         boolean first = true;
+
+         for (Map.Entry<String, Boolean> entry : sortFields.entrySet()) {
+            if (!first) {
+               result += ", ";
+            }
+
+            result += entry.getKey();
+
+            if (entry.getValue()) {
+               result += " asc";
+            } else {
+               result += " desc";
+            }
+
+            first = false;
+         }
+      }
       return result;
    }
 }

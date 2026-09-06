@@ -16,17 +16,38 @@ public class SortPlan implements Plan {
    private Schema sch;
    private RecordComparator comp;
    
-   /**
-    * Create a sort plan for the specified query.
-    * @param p the plan for the underlying query
-    * @param sortfields the fields to sort by
-    * @param tx the calling transaction
-    */
+   // /**
+   //  * Create a sort plan for the specified query.
+   //  * @param p the plan for the underlying query
+   //  * @param sortfields the fields to sort by
+   //  * @param tx the calling transaction
+   //  */
+   // public SortPlan(Transaction tx, Plan p, List<String> sortfields) {
+   //    this.tx = tx;
+   //    this.p = p;
+   //    sch = p.schema();
+   //    comp = new RecordComparator(sortfields);
+   // }
+
+   public SortPlan(Transaction tx, Plan p, Map<String, Boolean> sortFields) {
+      this.tx = tx;
+      this.p = p;
+      sch = p.schema();
+      comp = new RecordComparator(sortFields);
+   }
+
    public SortPlan(Transaction tx, Plan p, List<String> sortfields) {
       this.tx = tx;
       this.p = p;
       sch = p.schema();
-      comp = new RecordComparator(sortfields);
+
+      Map<String, Boolean> fields = new LinkedHashMap<>();
+
+      for (String fldname : sortfields) {
+         fields.put(fldname, true);
+      }
+
+      comp = new RecordComparator(fields);
    }
    
    /**
