@@ -2,6 +2,7 @@ package simpledb.plan;
 
 import java.util.*;
 import simpledb.tx.Transaction;
+import simpledb.materialize.*;
 import simpledb.metadata.*;
 import simpledb.parse.*;
 
