@@ -65,34 +65,13 @@ public class Parser {
          lex.eatKeyword("where");
          pred = predicate();
       }
-
-      LinkedHashMap<String, String> sortFields = new LinkedHashMap<>();
+      Map<String, Boolean> sortFields = new LinkedHashMap<>();
       if (lex.matchKeyword("order")) {
          lex.eatKeyword("order");
          lex.eatKeyword("by");
-         sortFields = sortList();
-
+         sortList(sortFields);
       }
-
       return new QueryData(fields, tables, pred, sortFields);
-   }
-
-   private LinkedHashMap<String, String> sortList() {
-      LinkedHashMap<String, String> L = new LinkedHashMap<>();
-      String field = field();
-      String order = "asc"; // default order
-      if (lex.matchKeyword("asc")) {
-         lex.eatKeyword("asc");
-      } else if (lex.matchKeyword("desc")) {
-         lex.eatKeyword("desc");
-         order = "desc";
-      }
-      L.put(field, order);
-      if (lex.matchDelim(',')) {
-         lex.eatDelim(',');
-         L.putAll(sortList());
-      }
-      return L;
    }
    
    private List<String> selectList() {
@@ -285,5 +264,23 @@ public class Parser {
       return new CreateIndexData(idxname, tblname, fldname, idxtype);
    }
 
+   private void sortList(Map<String, Boolean> sortFields) {
+      String fldname = field();
+
+      if (lex.matchKeyword("desc")) {
+         lex.eatKeyword("desc");
+         sortFields.put(fldname, false);
+      } else {
+         if (lex.matchKeyword("asc")) {
+            lex.eatKeyword("asc");
+         }
+         sortFields.put(fldname, true);
+      }
+
+      if (lex.matchDelim(',')) {
+         lex.eatDelim(',');
+         sortList(sortFields);
+      }
+   }
 }
 

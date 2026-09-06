@@ -18,27 +18,33 @@ public class SortPlan implements Plan {
    
    /**
     * Create a sort plan for the specified query.
+    * @param tx the calling transaction
+    * @param p the plan for the underlying query
+    * @param sortFields an ordered map from field name to direction
+    *                   (true = ascending, false = descending)
+    */
+   public SortPlan(Transaction tx, Plan p, Map<String, Boolean> sortFields) {
+      this.tx = tx;
+      this.p = p;
+      sch = p.schema();
+      comp = new RecordComparator(sortFields);
+   }
+
+   /**
+    * Create a sort plan for the specified query,
+    * sorting every field in ascending order.
+    * @param tx the calling transaction
     * @param p the plan for the underlying query
     * @param sortfields the fields to sort by
-    * @param tx the calling transaction
     */
    public SortPlan(Transaction tx, Plan p, List<String> sortfields) {
       this.tx = tx;
       this.p = p;
       sch = p.schema();
-      LinkedHashMap<String,String> map = new LinkedHashMap<>();
-      for (String f : sortfields)
-         map.put(f, "asc");
-      comp = new RecordComparator(map);
-   }
-
-
-   // Used by BasicQueryPlanner for order by: field -> "asc"/"desc"
-   public SortPlan(Transaction tx, Plan p, LinkedHashMap<String, String> sortfields) {
-      this.tx = tx;
-      this.p = p;
-      sch = p.schema();
-      comp = new RecordComparator(sortfields);
+      Map<String, Boolean> fields = new LinkedHashMap<>();
+      for (String fldname : sortfields)
+         fields.put(fldname, true);
+      comp = new RecordComparator(fields);
    }
    
    /**

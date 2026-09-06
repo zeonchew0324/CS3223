@@ -13,6 +13,11 @@ public class PlanTest1 {
 
       Plan p = db.planner().createQueryPlan(qry, tx);
       Scan s = p.open();
+
+      for (String fldname : p.schema().fields())
+         System.out.print(fldname + "\t");
+      System.out.println();
+
       while (s.next())
          System.out.println(s.getInt("sid") + "\t" + s.getString("sname")
                           + "\t" + s.getInt("gradyear"));
