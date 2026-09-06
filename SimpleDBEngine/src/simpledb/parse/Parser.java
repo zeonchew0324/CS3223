@@ -65,7 +65,13 @@ public class Parser {
          lex.eatKeyword("where");
          pred = predicate();
       }
-      return new QueryData(fields, tables, pred);
+      Map<String, Boolean> sortFields = new LinkedHashMap<>();
+      if (lex.matchKeyword("order")) {
+         lex.eatKeyword("order");
+         lex.eatKeyword("by");
+         sortFields = sortList();
+      }
+      return new QueryData(fields, tables, pred, sortFields);
    }
    
    private List<String> selectList() {
@@ -86,6 +92,24 @@ public class Parser {
          L.addAll(tableList());
       }
       return L;
+   }
+
+   private Map<String, Boolean> sortList() {
+      Map<String, Boolean> m = new LinkedHashMap<>();
+      String fldname = field();
+      boolean isAsc = true; // ascending order by default
+      if (lex.matchKeyword("asc")) {
+         lex.eatKeyword("asc");
+      } else if (lex.matchKeyword("desc")) {
+         lex.eatKeyword("desc");
+         isAsc = false;
+      }
+      m.put(fldname, isAsc);
+      if (lex.matchDelim(',')) {
+         lex.eatDelim(',');
+         m.putAll(sortList());
+      }
+      return m;
    }
    
 // Methods for parsing the various update commands

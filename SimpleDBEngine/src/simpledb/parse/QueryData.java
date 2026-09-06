@@ -12,14 +12,16 @@ public class QueryData {
    private List<String> fields;
    private Collection<String> tables;
    private Predicate pred;
+   private Map<String, Boolean> sortFields;
    
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(List<String> fields, Collection<String> tables, Predicate pred) {
+   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, Map<String, Boolean> sortFields) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
+       this.sortFields = sortFields;
    }
    
    /**
@@ -28,6 +30,14 @@ public class QueryData {
     */
    public List<String> fields() {
       return fields;
+   }
+
+   /**
+    * Returns the fields to sort on mentioned in the select clause.
+    * @return a map of sort field names and sorting order
+    */
+   public Map<String, Boolean> sortFields() {
+      return sortFields;
    }
    
    /**
@@ -59,6 +69,12 @@ public class QueryData {
       String predstring = pred.toString();
       if (!predstring.equals(""))
          result += " where " + predstring;
+      if (!sortFields.isEmpty()) {
+         result += " order by ";
+         for (var entry : sortFields.entrySet()) //(field, isAscending)
+            result += entry.getKey() + (entry.getValue() ? " asc" : " desc") + ", ";
+         result = result.substring(0, result.length()-2);
+      }
       return result;
    }
 }
