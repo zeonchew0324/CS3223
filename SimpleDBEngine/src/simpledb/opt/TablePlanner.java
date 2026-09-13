@@ -65,9 +65,14 @@ class TablePlanner {
       if (joinpred == null)
          return null;
       Plan p = makeIndexJoin(current, currsch);
-      if (p == null)
-         p = makeProductJoin(current, currsch);
-      return p;
+      if (p != null)
+         return p;
+      Plan nlj = new NestedLoopsJoinPlan(current, myplan, joinpred);
+      Plan pj = makeProductJoin(current, currsch);
+      if (nlj.blocksAccessed() < pj.blocksAccessed())
+         return nlj;
+      else
+         return pj;
    }
    
    /**
@@ -106,10 +111,10 @@ class TablePlanner {
       return null;
    }
    
-   private Plan makeProductJoin(Plan current, Schema currsch) {
-      Plan p = makeProductPlan(current);
-      return addJoinPred(p, currsch);
-   }
+//   private Plan makeProductJoin(Plan current, Schema currsch) {
+//      Plan p = makeProductPlan(current);
+//      return addJoinPred(p, currsch);
+//   }
    
    private Plan addSelectPred(Plan p) {
       Predicate selectpred = mypred.selectSubPred(myschema);
