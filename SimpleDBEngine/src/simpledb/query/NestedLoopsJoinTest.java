@@ -43,7 +43,7 @@ public class NestedLoopsJoinTest {
         // Create a predicate to join where T1.A = T2.C
         Expression exp1 = new Expression("A");
         Expression exp2 = new Expression("C");
-        Term t = new Term(exp1, exp2, "=");
+        Term t = new Term(exp1, "=", exp2);
         Predicate pred = new Predicate(t);
 
         Scan s1 = new TableScan(tx, "T1", layout1);

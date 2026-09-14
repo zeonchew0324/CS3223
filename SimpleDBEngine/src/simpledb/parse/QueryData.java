@@ -21,7 +21,7 @@ public class QueryData {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
-       this.sortFields = sortFields;
+      this.sortFields = sortFields;
    }
    
    /**
@@ -30,14 +30,6 @@ public class QueryData {
     */
    public List<String> fields() {
       return fields;
-   }
-
-   /**
-    * Returns the fields to sort on mentioned in the select clause.
-    * @return a map of sort field names and sorting order
-    */
-   public Map<String, Boolean> sortFields() {
-      return sortFields;
    }
    
    /**
@@ -56,6 +48,10 @@ public class QueryData {
    public Predicate pred() {
       return pred;
    }
+
+   public Map<String, Boolean> sortFields() {
+      return sortFields;
+   }
    
    public String toString() {
       String result = "select ";
@@ -69,11 +65,27 @@ public class QueryData {
       String predstring = pred.toString();
       if (!predstring.equals(""))
          result += " where " + predstring;
+
       if (!sortFields.isEmpty()) {
          result += " order by ";
-         for (var entry : sortFields.entrySet()) //(field, isAscending)
-            result += entry.getKey() + (entry.getValue() ? " asc" : " desc") + ", ";
-         result = result.substring(0, result.length()-2);
+
+         boolean first = true;
+
+         for (Map.Entry<String, Boolean> entry : sortFields.entrySet()) {
+            if (!first) {
+               result += ", ";
+            }
+
+            result += entry.getKey();
+
+            if (entry.getValue()) {
+               result += " asc";
+            } else {
+               result += " desc";
+            }
+
+            first = false;
+         }
       }
       return result;
    }

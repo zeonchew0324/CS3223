@@ -12,9 +12,10 @@ public class RecordComparator implements Comparator<Scan> {
    private Map<String, Boolean> sortFields;
    
    /**
-    * Create a comparator using the specified fields,
-    * using the ordering implied by its iterator.
-    * @param sortFields a map of field names to sorting order
+    * Create a comparator using the specified sort fields,
+    * using the ordering implied by the map's iterator.
+    * @param sortFields an ordered map from field name to direction
+    *                   (true = ascending, false = descending)
     */
    public RecordComparator(Map<String, Boolean> sortFields) {
       this.sortFields = sortFields;
@@ -33,13 +34,20 @@ public class RecordComparator implements Comparator<Scan> {
     * @return the result of comparing each scan's current record according to the field list
     */
    public int compare(Scan s1, Scan s2) {
-      for (var entry : sortFields.entrySet()) {
+      for (Map.Entry<String, Boolean> entry : sortFields.entrySet()) {
          String fldname = entry.getKey();
+         boolean ascending = entry.getValue();
+
          Constant val1 = s1.getVal(fldname);
          Constant val2 = s2.getVal(fldname);
          int result = val1.compareTo(val2);
-         if (result != 0)
-            return entry.getValue() ? result : -result;
+
+         if (result != 0) {
+            if (!ascending) {
+               result = -result;
+            }
+            return result;
+         }
       }
       return 0;
    }

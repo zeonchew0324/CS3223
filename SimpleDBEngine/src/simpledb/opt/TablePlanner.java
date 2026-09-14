@@ -65,15 +65,11 @@ class TablePlanner {
       if (joinpred == null)
          return null;
       Plan p = makeIndexJoin(current, currsch);
-      if (p != null)
-         return p;
-      Plan nlj = new NestedLoopsJoinPlan(current, myplan, joinpred);
-      Plan pj = makeProductJoin(current, currsch);
-      if (nlj.blocksAccessed() < pj.blocksAccessed())
-         return nlj;
-      else
-         return pj;
+      if (p == null)
+         p = makeNestedLoopsJoin(current, currsch);
+      return p;
    }
+
    
    /**
     * Constructs a product plan of the specified plan and
@@ -111,10 +107,21 @@ class TablePlanner {
       return null;
    }
    
-//   private Plan makeProductJoin(Plan current, Schema currsch) {
-//      Plan p = makeProductPlan(current);
-//      return addJoinPred(p, currsch);
-//   }
+   private Plan makeProductJoin(Plan current, Schema currsch) {
+      Plan p = makeProductPlan(current);
+      return addJoinPred(p, currsch);
+   }
+
+   /**
+    * Simple nested-loops join: the join predicate is evaluated inside
+    * the scan, so no additional select operation is needed.
+    * The table's own selection predicate is still pushed down onto
+    * the inner side via makeSelectPlan().
+    */
+   private Plan makeNestedLoopsJoin(Plan current, Schema currsch) {
+      Predicate joinpred = mypred.joinSubPred(myschema, currsch);
+      return new NestedLoopsJoinPlan(current, makeSelectPlan(), joinpred);
+   }
    
    private Plan addSelectPred(Plan p) {
       Predicate selectpred = mypred.selectSubPred(myschema);

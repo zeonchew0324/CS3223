@@ -69,7 +69,7 @@ public class Parser {
       if (lex.matchKeyword("order")) {
          lex.eatKeyword("order");
          lex.eatKeyword("by");
-         sortFields = sortList();
+         sortList(sortFields);
       }
       return new QueryData(fields, tables, pred, sortFields);
    }
@@ -92,24 +92,6 @@ public class Parser {
          L.addAll(tableList());
       }
       return L;
-   }
-
-   private Map<String, Boolean> sortList() {
-      Map<String, Boolean> m = new LinkedHashMap<>();
-      String fldname = field();
-      boolean isAsc = true; // ascending order by default
-      if (lex.matchKeyword("asc")) {
-         lex.eatKeyword("asc");
-      } else if (lex.matchKeyword("desc")) {
-         lex.eatKeyword("desc");
-         isAsc = false;
-      }
-      m.put(fldname, isAsc);
-      if (lex.matchDelim(',')) {
-         lex.eatDelim(',');
-         m.putAll(sortList());
-      }
-      return m;
    }
    
 // Methods for parsing the various update commands
@@ -255,7 +237,7 @@ public class Parser {
    }
    
    
-//  Method for parsing create index commands
+   //  Method for parsing create index commands
    
    public CreateIndexData createIndex() {
       lex.eatKeyword("index");
@@ -280,6 +262,25 @@ public class Parser {
             throw new BadSyntaxException();
       }
       return new CreateIndexData(idxname, tblname, fldname, idxtype);
+   }
+
+   private void sortList(Map<String, Boolean> sortFields) {
+      String fldname = field();
+
+      if (lex.matchKeyword("desc")) {
+         lex.eatKeyword("desc");
+         sortFields.put(fldname, false);
+      } else {
+         if (lex.matchKeyword("asc")) {
+            lex.eatKeyword("asc");
+         }
+         sortFields.put(fldname, true);
+      }
+
+      if (lex.matchDelim(',')) {
+         lex.eatDelim(',');
+         sortList(sortFields);
+      }
    }
 }
 
