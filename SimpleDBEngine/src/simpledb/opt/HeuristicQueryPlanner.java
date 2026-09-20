@@ -49,7 +49,7 @@ public class HeuristicQueryPlanner implements QueryPlanner {
       }
 
       if (!data.aggregates().isEmpty() || !data.groupFields().isEmpty())
-         p = new GroupByPlan(tx, p, data.groupFields(), data.aggregates());
+         currentplan = new GroupByPlan(tx, currentplan, data.groupFields(), data.aggregates());
       
       // Step 4.  Project on the field names and return
       Plan p = new ProjectPlan(currentplan, data.fields());

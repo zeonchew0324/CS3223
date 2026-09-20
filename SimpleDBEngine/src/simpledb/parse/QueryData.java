@@ -58,6 +58,14 @@ public class QueryData {
    public Map<String, Boolean> sortFields() {
       return sortFields;
    }
+
+   public List<AggregationFn> aggregates() {
+      return aggregates;
+   }
+
+   public List<String> groupFields() {
+      return groupFields;
+   }
    
    public String toString() {
       String result = "select ";
