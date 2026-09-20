@@ -68,11 +68,11 @@ class TablePlanner {
          return null;
       Plan p = makeIndexJoin(current, currsch);
       if (p == null)
+         p = makeHashJoin(current, currsch);
+      if (p == null)
          p = makeMergeJoin(current, currsch);
       if (p == null)
          p = makeNestedLoopsJoin(current, currsch);
-      if (p == null)
-         p = makeHashJoin(current, currsch);
       return p;
    }
 
