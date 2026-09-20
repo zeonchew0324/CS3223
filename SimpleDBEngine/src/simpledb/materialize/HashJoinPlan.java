@@ -31,7 +31,7 @@ public class HashJoinPlan implements Plan {
     }
 
     public Scan open() {
-        int numBuffers = Math.max(1 , tx.availableBuffs() - 2);
+        int numBuffers = Math.max(1 , (tx.availableBuffs() - 2) / 2);
         List<TempTable> buildpartitions = partition(build, buildField, numBuffers);
         List<TempTable> probepartitions = partition(probe, probeField, numBuffers);
         return new HashJoinScan(buildpartitions, probepartitions, build.schema(), probe.schema(), buildField, probeField);

@@ -7,6 +7,7 @@ import simpledb.query.*;
 import simpledb.metadata.*;
 import simpledb.index.planner.*;
 import simpledb.materialize.MergeJoinPlan;
+import simpledb.materialize.HashJoinPlan;
 import simpledb.multibuffer.MultibufferProductPlan;
 import simpledb.plan.*;
 
