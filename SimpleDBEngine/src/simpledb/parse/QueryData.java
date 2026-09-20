@@ -4,6 +4,8 @@ import java.util.*;
 
 import simpledb.query.*;
 
+import simpledb.materialize.AggregationFn;
+
 /**
  * Data for the SQL <i>select</i> statement.
  * @author Edward Sciore
@@ -13,15 +15,19 @@ public class QueryData {
    private Collection<String> tables;
    private Predicate pred;
    private Map<String, Boolean> sortFields;
+   private List<AggregationFn> aggregates;
+   private List<String> groupFields;
    
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, Map<String, Boolean> sortFields) {
+   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, Map<String, Boolean> sortFields, List<AggregationFn> aggregates, List<String> groupFields) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
       this.sortFields = sortFields;
+      this.aggregates = aggregates;
+      this.groupFields = groupFields;
    }
    
    /**

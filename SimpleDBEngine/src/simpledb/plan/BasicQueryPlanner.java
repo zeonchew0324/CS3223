@@ -43,6 +43,9 @@ public class BasicQueryPlanner implements QueryPlanner {
       
       //Step 3: Add a selection plan for the predicate
       p = new SelectPlan(p, data.pred());
+
+      if (!data.aggregates().isEmpty() || !data.groupFields().isEmpty())
+         p = new GroupByPlan(tx, p, data.groupFields(), data.aggregates());
       
       //Step 4: Project on the field names
       p = new ProjectPlan(p, data.fields());

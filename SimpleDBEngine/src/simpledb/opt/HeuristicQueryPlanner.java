@@ -5,6 +5,7 @@ import simpledb.tx.Transaction;
 import simpledb.metadata.MetadataMgr;
 import simpledb.parse.QueryData;
 import simpledb.plan.*;
+import simpledb.materialize.GroupByPlan;
 import simpledb.materialize.SortPlan;
 
 /**
@@ -46,6 +47,9 @@ public class HeuristicQueryPlanner implements QueryPlanner {
          else  // no applicable join
             currentplan = getLowestProductPlan(currentplan);
       }
+
+      if (!data.aggregates().isEmpty() || !data.groupFields().isEmpty())
+         p = new GroupByPlan(tx, p, data.groupFields(), data.aggregates());
       
       // Step 4.  Project on the field names and return
       Plan p = new ProjectPlan(currentplan, data.fields());
