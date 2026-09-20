@@ -70,6 +70,8 @@ class TablePlanner {
          p = makeMergeJoin(current, currsch);
       if (p == null)
          p = makeNestedLoopsJoin(current, currsch);
+      if (p == null)
+         p = makeHashJoin(current, currsch);
       return p;
    }
 
@@ -147,6 +149,17 @@ class TablePlanner {
          String outerfield = mypred.equatesWithField(fldname);
          if (outerfield != null && currsch.hasField(outerfield)) {
             Plan p = new MergeJoinPlan(tx, current, makeSelectPlan(), outerfield, fldname);
+            return addJoinPred(p, currsch);
+         }
+      }
+      return null;
+   }
+
+   private Plan makeHashJoin(Plan current, Schema currsch) {
+      for (String fldname : myschema.fields()) {
+         String outerfield = mypred.equatesWithField(fldname);
+         if (outerfield != null && currsch.hasField(outerfield)) {
+            Plan p = new HashJoinPlan(tx, current, makeSelectPlan(), outerfield, fldname);
             return addJoinPred(p, currsch);
          }
       }
