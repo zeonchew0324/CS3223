@@ -5,7 +5,11 @@ import simpledb.tx.Transaction;
 import simpledb.metadata.MetadataMgr;
 import simpledb.parse.QueryData;
 import simpledb.plan.*;
+<<<<<<< HEAD
 import simpledb.materialize.SortPlan;
+=======
+import simpledb.materialize.*;
+>>>>>>> 75f870d (Implement Lab 5 aggregation)
 
 /**
  * A query planner that optimizes using a heuristic-based algorithm.
@@ -48,10 +52,54 @@ public class HeuristicQueryPlanner implements QueryPlanner {
       }
       
       // Step 4.  Project on the field names and return
-      Plan p = new ProjectPlan(currentplan, data.fields());
-      if (!data.sortFields().isEmpty())
-         p = new SortPlan(tx, p, data.sortFields());
-      return p;
+      // return new ProjectPlan(currentplan, data.fields());
+      List<AggregationFn> aggfns = new ArrayList<>();
+
+      for (simpledb.parse.AggregateData agg : data.aggregates()) {
+         String function = agg.function().toLowerCase();
+         String field = agg.field();
+
+         switch (function) {
+            case "count":
+               aggfns.add(new CountFn(field));
+               break;
+            case "sum":
+               aggfns.add(new SumFn(field));
+               break;
+            case "avg":
+               aggfns.add(new AvgFn(field));
+               break;
+            case "min":
+               aggfns.add(new MinFn(field));
+               break;
+            case "max":
+               aggfns.add(new MaxFn(field));
+               break;
+            default:
+               throw new IllegalArgumentException(
+                  "Unknown aggregate function: " + function
+               );
+         }
+      }
+
+      if (!aggfns.isEmpty() || !data.groupFields().isEmpty()) {
+         currentplan = new GroupByPlan(tx, currentplan, data.groupFields(), aggfns);
+      }
+
+      List<String> outputFields = new ArrayList<>(data.fields());
+
+      for (AggregationFn fn : aggfns) {
+         outputFields.add(fn.fieldName());
+      }
+
+      Plan result = new ProjectPlan(currentplan, outputFields);
+
+      if (!data.sortFields().isEmpty()) {
+         result = new SortPlan(tx, result, data.sortFields());
+      }
+
+      // return new ProjectPlan(currentplan, outputFields);
+      return result;
    }
    
    private Plan getLowestSelectPlan() {

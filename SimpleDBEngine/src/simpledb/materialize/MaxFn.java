@@ -37,6 +37,10 @@ public class MaxFn implements AggregationFn {
       if (newval.compareTo(val) > 0)
          val = newval;
    }
+
+   public void processEmpty() {
+      val = null;
+   }
    
    /**
     * Return the field's name, prepended by "maxof".
@@ -51,6 +55,6 @@ public class MaxFn implements AggregationFn {
     * @see simpledb.materialize.AggregationFn#value()
     */
    public Constant value() {
-      return val;
+      return val == null ? new Constant() : val;
    }
 }

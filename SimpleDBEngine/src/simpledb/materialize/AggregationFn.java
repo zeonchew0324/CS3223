@@ -22,6 +22,8 @@ public interface AggregationFn {
     * @param s the scan to aggregate over.
     */
    void processNext(Scan s);
+
+   void processEmpty();
    
    /**
     * Return the name of the new aggregation field.

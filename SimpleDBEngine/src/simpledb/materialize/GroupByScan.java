@@ -14,6 +14,7 @@ public class GroupByScan implements Scan {
    private List<AggregationFn> aggfns;
    private GroupValue groupval;
    private boolean moregroups;
+   private boolean emptyAggregatePending;
    
    /**
     * Create a groupby scan, given a grouped table scan.
@@ -39,6 +40,7 @@ public class GroupByScan implements Scan {
    public void beforeFirst() {
       s.beforeFirst();
       moregroups = s.next();
+      emptyAggregatePending = !moregroups && groupfields.isEmpty() && !aggfns.isEmpty();
    }
    
    /**
@@ -53,20 +55,54 @@ public class GroupByScan implements Scan {
     * @see simpledb.query.Scan#next()
     */
    public boolean next() {
-      if (!moregroups)
-         return false;
-      for (AggregationFn fn : aggfns)
+      if (!moregroups) {
+         if (!emptyAggregatePending) {
+            return false;
+         }
+
+         emptyAggregatePending = false;
+
+         for (AggregationFn fn : aggfns) {
+            fn.processEmpty();
+         }
+
+         groupval = null;
+         return true;
+      }
+
+      for (AggregationFn fn : aggfns) {
          fn.processFirst(s);
+      }
+
       groupval = new GroupValue(s, groupfields);
-      while(moregroups = s.next()) {
+
+      while (moregroups = s.next()) {
          GroupValue gv = new GroupValue(s, groupfields);
-         if (!groupval.equals(gv))
+         if (!groupval.equals(gv)) {
             break;
-         for (AggregationFn fn : aggfns)
+         }
+
+         for (AggregationFn fn : aggfns) {
             fn.processNext(s);
+         }
       }
       return true;
    }
+   // public boolean next() {
+   //    if (!moregroups)
+   //       return false;
+   //    for (AggregationFn fn : aggfns)
+   //       fn.processFirst(s);
+   //    groupval = new GroupValue(s, groupfields);
+   //    while(moregroups = s.next()) {
+   //       GroupValue gv = new GroupValue(s, groupfields);
+   //       if (!groupval.equals(gv))
+   //          break;
+   //       for (AggregationFn fn : aggfns)
+   //          fn.processNext(s);
+   //    }
+   //    return true;
+   // }
    
    /**
     * Close the scan by closing the underlying scan.

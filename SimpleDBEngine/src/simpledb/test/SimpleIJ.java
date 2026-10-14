@@ -6,6 +6,7 @@ import static java.sql.Types.INTEGER;
 
 import simpledb.plan.Plan;
 import simpledb.plan.Planner;
+import simpledb.query.Constant;
 import simpledb.query.Scan;
 import simpledb.record.Schema;
 import simpledb.server.SimpleDB;
@@ -48,7 +49,8 @@ public class SimpleIJ {
          s.close();
       }
       catch (Exception e) {
-         System.out.println("SQL Exception: " + e.getMessage());
+         // System.out.println("SQL Exception: " + e.getMessage());
+         e.printStackTrace();
       }
    }
 
@@ -78,11 +80,20 @@ public class SimpleIJ {
    private static void printRow(Schema sch, Scan s) {
       for (String fldname : sch.fields()) {
          int width = columnWidth(sch, fldname);
-         int fldtype = sch.type(fldname);
-         if (fldtype == INTEGER)
-            System.out.format("%" + width + "d", s.getInt(fldname));
-         else
-            System.out.format("%" + width + "s", s.getString(fldname));
+         Constant val = s.getVal(fldname);
+
+         if (val.isNull()) {
+            System.out.format("%" + width + "s", "NULL");
+         } else if (sch.type(fldname) == INTEGER) {
+            System.out.format("%" + width + "d", val.asInt());
+         } else {
+            System.out.format("%" + width + "s", val.asString());
+         }
+         // int fldtype = sch.type(fldname);
+         // if (fldtype == INTEGER)
+         //    System.out.format("%" + width + "d", s.getInt(fldname));
+         // else
+         //    System.out.format("%" + width + "s", s.getString(fldname));
       }
       System.out.println();
    }

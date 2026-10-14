@@ -57,7 +57,11 @@ public class Parser {
    
    public QueryData query() {
       lex.eatKeyword("select");
-      List<String> fields = selectList();
+      // List<String> fields = selectList();
+      List<String> fields = new ArrayList<>();
+      List<AggregateData> aggregates = new ArrayList<>();
+      selectList(fields, aggregates);
+
       lex.eatKeyword("from");
       Collection<String> tables = tableList();
       Predicate pred = new Predicate();
@@ -65,23 +69,63 @@ public class Parser {
          lex.eatKeyword("where");
          pred = predicate();
       }
+
+      List<String> groupFields = new ArrayList<>();
+      if (lex.matchKeyword("group")) {
+         lex.eatKeyword("group");
+         lex.eatKeyword("by");
+         groupList(groupFields);
+      }
+
       Map<String, Boolean> sortFields = new LinkedHashMap<>();
       if (lex.matchKeyword("order")) {
          lex.eatKeyword("order");
          lex.eatKeyword("by");
          sortList(sortFields);
       }
-      return new QueryData(fields, tables, pred, sortFields);
+
+      System.out.println("Fields: " + fields);
+      System.out.println("Aggregates: " + aggregates.size());
+      System.out.println("Group fields: " + groupFields);
+
+      return new QueryData(fields, tables, pred, sortFields, aggregates, groupFields);
    }
    
-   private List<String> selectList() {
-      List<String> L = new ArrayList<String>();
-      L.add(field());
+   // private List<String> selectList() {
+   //    List<String> L = new ArrayList<String>();
+   //    L.add(field());
+   //    if (lex.matchDelim(',')) {
+   //       lex.eatDelim(',');
+   //       L.addAll(selectList());
+   //    }
+   //    return L;
+   // }
+
+   private void selectList(List<String> fields, List<AggregateData> aggregates) {
+      if (isAggregateFunction()) {
+         String function = aggregateFunction();
+         lex.eatDelim('(');
+
+         String fldname;
+
+         if (lex.matchDelim('*')) {
+            lex.eatDelim('*');
+            fldname = "*";
+         } else {
+            fldname = field();
+         }
+         
+         lex.eatDelim(')');
+
+         aggregates.add(new AggregateData(function, fldname));
+      } else {
+         fields.add(field());
+      }
+
       if (lex.matchDelim(',')) {
          lex.eatDelim(',');
-         L.addAll(selectList());
+         selectList(fields, aggregates);
       }
-      return L;
    }
    
    private Collection<String> tableList() {
@@ -282,5 +326,38 @@ public class Parser {
          sortList(sortFields);
       }
    }
-}
 
+   private String aggregateFunction() {
+      if (lex.matchKeyword("count")) {
+         lex.eatKeyword("count");
+         return "count";
+      } else if (lex.matchKeyword("sum")) {
+         lex.eatKeyword("sum");
+         return "sum";
+      } else if (lex.matchKeyword("avg")) {
+         lex.eatKeyword("avg");
+         return "avg";
+      } else if (lex.matchKeyword("min")) {
+         lex.eatKeyword("min");
+         return "min";
+      } else if (lex.matchKeyword("max")) {
+         lex.eatKeyword("max");
+         return "max";
+      } else {
+         throw new BadSyntaxException();
+      }
+   }
+
+   private boolean isAggregateFunction() {
+      return lex.matchKeyword("count") || lex.matchKeyword("sum") || lex.matchKeyword("avg") || lex.matchKeyword("min") || lex.matchKeyword("max");
+   }
+
+   private void groupList(List<String> groupFields) {
+      groupFields.add(field());
+
+      if (lex.matchDelim(',')) {
+         lex.eatDelim(',');
+         groupList(groupFields);
+      }
+   }
+}
