@@ -5,11 +5,7 @@ import simpledb.tx.Transaction;
 import simpledb.metadata.MetadataMgr;
 import simpledb.parse.QueryData;
 import simpledb.plan.*;
-<<<<<<< HEAD
-import simpledb.materialize.SortPlan;
-=======
 import simpledb.materialize.*;
->>>>>>> 75f870d (Implement Lab 5 aggregation)
 
 /**
  * A query planner that optimizes using a heuristic-based algorithm.
