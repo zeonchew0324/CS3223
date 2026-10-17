@@ -15,17 +15,19 @@ public class QueryData {
    private Map<String, Boolean> sortFields;
    private List<AggregateData> aggregates;
    private List<String> groupFields;
+   private boolean distinct;
    
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, Map<String, Boolean> sortFields, List<AggregateData> aggregates, List<String> groupFields) {
+   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, Map<String, Boolean> sortFields, List<AggregateData> aggregates, List<String> groupFields, boolean distinct) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
       this.sortFields = sortFields;
       this.aggregates = aggregates;
       this.groupFields = groupFields;
+      this.distinct = distinct;
    }
    
    /**
@@ -64,9 +66,13 @@ public class QueryData {
    public List<String> groupFields() {
       return groupFields;
    }
+
+   public boolean isDistinct() {
+      return distinct;
+   }
    
    public String toString() {
-      String result = "select ";
+      String result = distinct ? "select distinct " : "select ";
 
       List<String> selectItems = new ArrayList<>();
 

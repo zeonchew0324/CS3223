@@ -94,6 +94,10 @@ public class HeuristicQueryPlanner implements QueryPlanner {
 
       Plan result = new ProjectPlan(currentplan, outputFields);
 
+      if (data.isDistinct()) {
+         result = new DistinctPlan(tx, result, outputFields);
+      }
+
       if (!data.sortFields().isEmpty()) {
          result = new SortPlan(tx, result, data.sortFields());
       }

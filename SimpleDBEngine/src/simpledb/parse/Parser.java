@@ -58,6 +58,13 @@ public class Parser {
    public QueryData query() {
       lex.eatKeyword("select");
       // List<String> fields = selectList();
+
+      boolean distinct = false;
+      if (lex.matchKeyword("distinct")) {
+         lex.eatKeyword("distinct");
+         distinct = true;
+      }
+
       List<String> fields = new ArrayList<>();
       List<AggregateData> aggregates = new ArrayList<>();
       selectList(fields, aggregates);
@@ -88,7 +95,7 @@ public class Parser {
       System.out.println("Aggregates: " + aggregates.size());
       System.out.println("Group fields: " + groupFields);
 
-      return new QueryData(fields, tables, pred, sortFields, aggregates, groupFields);
+      return new QueryData(fields, tables, pred, sortFields, aggregates, groupFields, distinct);
    }
    
    // private List<String> selectList() {
