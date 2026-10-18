@@ -59,7 +59,7 @@ public class SortPlan implements Plan {
       src.close();
 
       if (runs.isEmpty()) {
-         return new EmptyScan();
+         runs.add(new TempTable(tx, sch));
       }
 
       while (runs.size() > 2)

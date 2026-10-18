@@ -57,4 +57,8 @@ public class MaxFn implements AggregationFn {
    public Constant value() {
       return val == null ? new Constant() : val;
    }
+
+   public String sourceField() {
+      return fldname;
+   }
 }

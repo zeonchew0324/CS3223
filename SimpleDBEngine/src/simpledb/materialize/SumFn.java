@@ -32,4 +32,8 @@ public class SumFn implements AggregationFn {
     public Constant value() {
         return empty ? new Constant() : new Constant(sum);
     }
+
+    public String sourceField() {
+      return fldname;
+   }
 }

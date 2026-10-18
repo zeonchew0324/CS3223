@@ -164,7 +164,8 @@ class TablePlanner {
       for (String fldname : myschema.fields()) {
          String outerfield = mypred.equatesWithField(fldname);
          if (outerfield != null && currsch.hasField(outerfield)) {
-            return new MergeJoinPlan(tx, current, makeSelectPlan(), outerfield, fldname);
+            Plan p = new MergeJoinPlan(tx, current, makeSelectPlan(), outerfield, fldname);
+            return addJoinPred(p, currsch);
          }
       }
       return null;

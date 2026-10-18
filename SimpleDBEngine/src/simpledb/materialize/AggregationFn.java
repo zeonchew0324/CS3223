@@ -24,6 +24,8 @@ public interface AggregationFn {
    void processNext(Scan s);
 
    void processEmpty();
+
+   String sourceField();
    
    /**
     * Return the name of the new aggregation field.

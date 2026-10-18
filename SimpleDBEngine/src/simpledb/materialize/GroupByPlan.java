@@ -1,6 +1,7 @@
 package simpledb.materialize;
 
 import java.util.*;
+import static java.sql.Types.INTEGER;
 import simpledb.tx.Transaction;
 import simpledb.record.Schema;
 import simpledb.plan.Plan;
@@ -34,7 +35,16 @@ public class GroupByPlan implements Plan {
       for (String fldname : groupfields)
          sch.add(fldname, p.schema());
       for (AggregationFn fn : aggfns)
-         sch.addIntField(fn.fieldName());
+         if (fn instanceof MinFn || fn instanceof MaxFn) {
+            String src = fn.sourceField();
+            Schema in = p.schema();
+            if (in.type(src) == INTEGER)
+               sch.addIntField(fn.fieldName());
+            else
+               sch.addStringField(fn.fieldName(), in.length(src));
+         } else {
+            sch.addIntField(fn.fieldName());
+         }
    }
    
    /**
