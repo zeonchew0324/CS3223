@@ -45,4 +45,11 @@ public interface Plan {
     * @return the query's schema
     */
    public Schema schema();
+
+   default String describePlan(String indent) {
+      return indent + getClass().getSimpleName()
+         + " [blocks=" + blocksAccessed()
+         + ", records=" + recordsOutput()
+         + ", fields=" + schema().fields() + "]\n";
+   }
 }

@@ -88,4 +88,14 @@ public class IndexJoinPlan implements Plan {
    public Schema schema() {
       return sch;
    }
+
+   @Override 
+   public String describePlan(String indent) {
+      return indent + "IndexJoinPlan [joinField=" + joinfield
+         + ", index=" + ii
+         + ", blocks=" + blocksAccessed()
+         + ", records=" + recordsOutput() + "]\n"
+         + p1.describePlan(indent + "  ")
+         + p2.describePlan(indent + "  ");
+   }
 }

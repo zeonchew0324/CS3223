@@ -98,5 +98,16 @@ public class MergeJoinPlan implements Plan {
    public Schema schema() {
       return sch;
    }
+
+   @Override 
+   public String describePlan(String indent) {
+      return indent + "MergeJoinPlan [condition="
+         + fldname1 + " = " + fldname2
+         + ", blocks=" + blocksAccessed()
+         + ", records=" + recordsOutput()
+         + ", fields=" + sch.fields() + "]\n"
+         + p1.describePlan(indent + "  ")
+         + p2.describePlan(indent + "  ");
+   }
 }
 

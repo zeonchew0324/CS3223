@@ -9,6 +9,7 @@ import simpledb.index.planner.*;
 import simpledb.materialize.MergeJoinPlan;
 import simpledb.multibuffer.MultibufferProductPlan;
 import simpledb.plan.*;
+import simpledb.materialize.HashJoinPlan;
 
 /**
  * This class contains methods for planning a single table.
@@ -69,7 +70,11 @@ class TablePlanner {
       if (p == null)
          p = makeMergeJoin(current, currsch);
       if (p == null)
+         p = makeHashJoin(current, currsch);
+      if (p == null)
          p = makeNestedLoopsJoin(current, currsch);
+      if (p == null)
+         p = makeProductJoin(current, currsch);
       return p;
    }
 
@@ -103,6 +108,19 @@ class TablePlanner {
          if (outerfield != null && currsch.hasField(outerfield)) {
             IndexInfo ii = indexes.get(fldname);
             Plan p = new IndexJoinPlan(current, myplan, ii, outerfield);
+            p = addSelectPred(p);
+            return addJoinPred(p, currsch);
+         }
+      }
+      return null;
+   }
+
+   private Plan makeHashJoin(Plan current, Schema currsch) {
+      for (String fldname : myschema.fields()) {
+         String outerField = mypred.equatesWithField(fldname);
+
+         if (outerField != null && currsch.hasField(outerField)) {
+            Plan p = new HashJoinPlan(tx, current, myplan, outerField, fldname);
             p = addSelectPred(p);
             return addJoinPred(p, currsch);
          }

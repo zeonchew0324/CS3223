@@ -86,4 +86,13 @@ public class NestedLoopsJoinPlan implements Plan {
     public Schema schema() {
         return schema;
     }
+
+    @Override 
+    public String describePlan(String indent) {
+        return indent + "NestedLoopsJoinPlan [predicate=" + joinpred
+            + ", blocks=" + blocksAccessed()
+            + ", records=" + recordsOutput() + "]\n"
+            + p1.describePlan(indent + "  ")
+            + p2.describePlan(indent + "  ");
+    }
 }

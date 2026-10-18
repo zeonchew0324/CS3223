@@ -4,3 +4,5 @@ SimpleDBClients/studentdb/temp*.tbl
 
 # Local patch files
 *.patch
+
+SimpleDBEngine/out

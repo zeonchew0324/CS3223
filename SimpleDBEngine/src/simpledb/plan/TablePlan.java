@@ -70,4 +70,11 @@ public class TablePlan implements Plan {
    public Schema schema() {
       return layout.schema();
    }
+
+   @Override 
+   public String describePlan(String indent) {
+      return indent + "TablePlan [table=" + tblname
+         + ", blocks=" + blocksAccessed()
+         + ", records=" + recordsOutput() + "]\n";
+   }
 }

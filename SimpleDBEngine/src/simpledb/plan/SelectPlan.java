@@ -83,4 +83,10 @@ public class SelectPlan implements Plan {
    public Schema schema() {
       return p.schema();
    }
+
+   @Override 
+   public String describePlan(String indent) {
+      return indent + "SelectPlan [predicate=" + pred + "]\n"
+         + p.describePlan(indent + "  ");
+   }
 }

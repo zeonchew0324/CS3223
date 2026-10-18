@@ -6,6 +6,7 @@ import static java.sql.Types.INTEGER;
 
 import simpledb.plan.Plan;
 import simpledb.plan.Planner;
+import simpledb.query.Constant;
 import simpledb.query.Scan;
 import simpledb.record.Schema;
 import simpledb.server.SimpleDB;
@@ -22,12 +23,21 @@ public class SimpleIJ {
       System.out.print("SQL> ");
       while (sc.hasNextLine()) {
          String cmd = sc.nextLine().trim();
-         if (cmd.startsWith("exit"))
+         // if (cmd.startsWith("exit"))
+         //    break;
+         // else if (cmd.startsWith("select"))
+         //    doQuery(planner, tx, cmd);
+         // else if (!cmd.isEmpty())
+         //    doUpdate(planner, tx, cmd);
+         if (cmd.equalsIgnoreCase("exit")) {
             break;
-         else if (cmd.startsWith("select"))
+         } else if (cmd.toLowerCase().startsWith("explain")) {
+            doExplain(planner, tx, cmd.substring(8).trim());
+         } else if (cmd.toLowerCase().startsWith("select")) {
             doQuery(planner, tx, cmd);
-         else if (!cmd.isEmpty())
+         } else if (!cmd.isEmpty()) {
             doUpdate(planner, tx, cmd);
+         }
          System.out.print("\nSQL> ");
       }
 
@@ -48,7 +58,8 @@ public class SimpleIJ {
          s.close();
       }
       catch (Exception e) {
-         System.out.println("SQL Exception: " + e.getMessage());
+         // System.out.println("SQL Exception: " + e.getMessage());
+         e.printStackTrace();
       }
    }
 
@@ -58,6 +69,16 @@ public class SimpleIJ {
          System.out.println(howmany + " records processed");
       }
       catch (Exception e) {
+         System.out.println("SQL Exception: " + e.getMessage());
+      }
+   }
+
+   private static void doExplain(Planner planner, Transaction tx, String cmd) {
+      try {
+         Plan p = planner.createQueryPlan(cmd, tx);
+         System.out.println("Query plan:");
+         System.out.print(p.describePlan(""));
+      } catch (Exception e) {
          System.out.println("SQL Exception: " + e.getMessage());
       }
    }
@@ -78,11 +99,20 @@ public class SimpleIJ {
    private static void printRow(Schema sch, Scan s) {
       for (String fldname : sch.fields()) {
          int width = columnWidth(sch, fldname);
-         int fldtype = sch.type(fldname);
-         if (fldtype == INTEGER)
-            System.out.format("%" + width + "d", s.getInt(fldname));
-         else
-            System.out.format("%" + width + "s", s.getString(fldname));
+         Constant val = s.getVal(fldname);
+
+         if (val.isNull()) {
+            System.out.format("%" + width + "s", "NULL");
+         } else if (sch.type(fldname) == INTEGER) {
+            System.out.format("%" + width + "d", val.asInt());
+         } else {
+            System.out.format("%" + width + "s", val.asString());
+         }
+         // int fldtype = sch.type(fldname);
+         // if (fldtype == INTEGER)
+         //    System.out.format("%" + width + "d", s.getInt(fldname));
+         // else
+         //    System.out.format("%" + width + "s", s.getString(fldname));
       }
       System.out.println();
    }

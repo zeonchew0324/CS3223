@@ -13,15 +13,21 @@ public class QueryData {
    private Collection<String> tables;
    private Predicate pred;
    private Map<String, Boolean> sortFields;
+   private List<AggregateData> aggregates;
+   private List<String> groupFields;
+   private boolean distinct;
    
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, Map<String, Boolean> sortFields) {
+   public QueryData(List<String> fields, Collection<String> tables, Predicate pred, Map<String, Boolean> sortFields, List<AggregateData> aggregates, List<String> groupFields, boolean distinct) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
       this.sortFields = sortFields;
+      this.aggregates = aggregates;
+      this.groupFields = groupFields;
+      this.distinct = distinct;
    }
    
    /**
@@ -52,19 +58,43 @@ public class QueryData {
    public Map<String, Boolean> sortFields() {
       return sortFields;
    }
+
+   public List<AggregateData> aggregates() {
+      return aggregates;
+   }
+
+   public List<String> groupFields() {
+      return groupFields;
+   }
+
+   public boolean isDistinct() {
+      return distinct;
+   }
    
    public String toString() {
-      String result = "select ";
-      for (String fldname : fields)
-         result += fldname + ", ";
-      result = result.substring(0, result.length()-2); //remove final comma
-      result += " from ";
-      for (String tblname : tables)
-         result += tblname + ", ";
-      result = result.substring(0, result.length()-2); //remove final comma
+      String result = distinct ? "select distinct " : "select ";
+
+      List<String> selectItems = new ArrayList<>();
+
+      for (String fldname : fields) {
+         selectItems.add(fldname);
+      }
+
+      for (AggregateData agg : aggregates) {
+         selectItems.add(agg.function() + "(" + agg.field() + ")");
+      }
+
+      result += String.join(", ", selectItems);
+      result += " from " + String.join(", ", tables);
+
       String predstring = pred.toString();
-      if (!predstring.equals(""))
+      if (!predstring.equals("")) {
          result += " where " + predstring;
+      }
+
+      if (!groupFields.isEmpty()) {
+         result += " group by " + String.join(", ", groupFields);
+      }
 
       if (!sortFields.isEmpty()) {
          result += " order by ";
@@ -77,16 +107,11 @@ public class QueryData {
             }
 
             result += entry.getKey();
-
-            if (entry.getValue()) {
-               result += " asc";
-            } else {
-               result += " desc";
-            }
-
+            result += entry.getValue() ? " asc" : " desc";
             first = false;
          }
       }
+
       return result;
    }
 }

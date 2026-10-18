@@ -82,7 +82,7 @@ class TableMgr {
       int size = -1;
     TableScan tcat = new TableScan(tx, "tblcat", tcatLayout);
       while(tcat.next())
-         if(tcat.getString("tblname").equals(tblname)) {
+         if(tcat.getString("tblname").equalsIgnoreCase(tblname)) {
             size = tcat.getInt("slotsize");
             break;
          }
@@ -92,7 +92,7 @@ class TableMgr {
       Map<String,Integer> offsets = new HashMap<String,Integer>();
       TableScan fcat = new TableScan(tx, "fldcat", fcatLayout);
       while(fcat.next())
-         if(fcat.getString("tblname").equals(tblname)) {
+         if(fcat.getString("tblname").equalsIgnoreCase(tblname)) {
             String fldname = fcat.getString("fldname");
             int fldtype    = fcat.getInt("type");
             int fldlen     = fcat.getInt("length");

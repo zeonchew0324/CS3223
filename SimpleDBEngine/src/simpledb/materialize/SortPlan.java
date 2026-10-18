@@ -57,10 +57,14 @@ public class SortPlan implements Plan {
       Scan src = p.open();
       List<TempTable> runs = splitIntoRuns(src);
       src.close();
-      if (runs.isEmpty())
+
+      if (runs.isEmpty()) {
          runs.add(new TempTable(tx, sch));
+      }
+
       while (runs.size() > 2)
          runs = doAMergeIteration(runs);
+      
       return new SortScan(runs, comp);
    }
    
@@ -169,5 +173,12 @@ public class SortPlan implements Plan {
       for (String fldname : sch.fields())
          dest.setVal(fldname, src.getVal(fldname));
       return src.next();
+   }
+
+   @Override 
+   public String describePlan(String indent) {
+      return indent + "SortPlan [blocks=" + blocksAccessed()
+         + ", records=" + recordsOutput() + "]\n"
+         + p.describePlan(indent + "  ");
    }
 }

@@ -1,6 +1,7 @@
 package simpledb.materialize;
 
 import java.util.*;
+import static java.sql.Types.INTEGER;
 import simpledb.tx.Transaction;
 import simpledb.record.Schema;
 import simpledb.plan.Plan;
@@ -28,13 +29,22 @@ public class GroupByPlan implements Plan {
     * @param tx the calling transaction
     */
    public GroupByPlan(Transaction tx, Plan p, List<String> groupfields, List<AggregationFn> aggfns) {
-      this.p = new SortPlan(tx, p, groupfields);
+      this.p = groupfields.isEmpty() ? p : new SortPlan(tx, p, groupfields);
       this.groupfields = groupfields;
       this.aggfns = aggfns;
       for (String fldname : groupfields)
          sch.add(fldname, p.schema());
       for (AggregationFn fn : aggfns)
-         sch.addIntField(fn.fieldName());
+         if (fn instanceof MinFn || fn instanceof MaxFn) {
+            String src = fn.sourceField();
+            Schema in = p.schema();
+            if (in.type(src) == INTEGER)
+               sch.addIntField(fn.fieldName());
+            else
+               sch.addStringField(fn.fieldName(), in.length(src));
+         } else {
+            sch.addIntField(fn.fieldName());
+         }
    }
    
    /**
@@ -97,5 +107,17 @@ public class GroupByPlan implements Plan {
     */
    public Schema schema() {
       return sch;
+   }
+
+   @Override 
+   public String describePlan(String indent) {
+      List<String> aggregateNames = new ArrayList<>();
+      for (AggregationFn fn : aggfns) {
+         aggregateNames.add(fn.fieldName());
+      }
+
+      return indent + "GroupByPlan [groupFields=" + groupfields
+         + ", aggregates=" + aggregateNames + "]\n"
+         + p.describePlan(indent + "  ");
    }
 }
