@@ -98,4 +98,16 @@ public class GroupByPlan implements Plan {
    public Schema schema() {
       return sch;
    }
+
+   @Override 
+   public String describePlan(String indent) {
+      List<String> aggregateNames = new ArrayList<>();
+      for (AggregationFn fn : aggfns) {
+         aggregateNames.add(fn.fieldName());
+      }
+
+      return indent + "GroupByPlan [groupFields=" + groupfields
+         + ", aggregates=" + aggregateNames + "]\n"
+         + p.describePlan(indent + "  ");
+   }
 }

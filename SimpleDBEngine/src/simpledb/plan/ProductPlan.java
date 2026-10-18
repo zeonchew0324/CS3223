@@ -76,4 +76,12 @@ public class ProductPlan implements Plan {
    public Schema schema() {
       return schema;
    }
+
+   @Override 
+   public String describePlan(String indent) {
+      return indent + "ProductPlan [blocks=" + blocksAccessed()
+         + ", records=" + recordsOutput() + "]\n"
+         + p1.describePlan(indent + "  ")
+         + p2.describePlan(indent + "  ");
+   }
 }

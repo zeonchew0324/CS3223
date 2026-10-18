@@ -50,4 +50,14 @@ public class HashJoinPlan implements Plan {
     public Schema schema() {
         return sch;
     }
+
+    @Override 
+    public String describePlan(String indent) {
+        return indent + "HashJoinPlan [condition="
+            + fldname1 + " = " + fldname2
+            + ", blocks=" + blocksAccessed()
+            + ", records=" + recordsOutput() + "]\n"
+            + p1.describePlan(indent + "  ")
+            + p2.describePlan(indent + "  ");
+    }
 }

@@ -174,4 +174,11 @@ public class SortPlan implements Plan {
          dest.setVal(fldname, src.getVal(fldname));
       return src.next();
    }
+
+   @Override 
+   public String describePlan(String indent) {
+      return indent + "SortPlan [blocks=" + blocksAccessed()
+         + ", records=" + recordsOutput() + "]\n"
+         + p.describePlan(indent + "  ");
+   }
 }

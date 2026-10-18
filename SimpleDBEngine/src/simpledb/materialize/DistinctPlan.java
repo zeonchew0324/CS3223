@@ -34,4 +34,10 @@ public class DistinctPlan implements Plan {
     public Schema schema() {
         return p.schema();
     }
+
+    @Override 
+    public String describePlan(String indent) {
+        return indent + "DistinctPlan [fields=" + fields + "]\n"
+            + p.describePlan(indent + "  ");
+    }
 }

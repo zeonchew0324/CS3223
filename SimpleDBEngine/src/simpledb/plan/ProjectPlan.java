@@ -69,4 +69,10 @@ public class ProjectPlan implements Plan {
    public Schema schema() {
       return schema;
    }
+
+   @Override 
+   public String describePlan(String indent) {
+      return indent + "ProjectPlan [fields=" + schema.fields() + "]\n"
+         + p.describePlan(indent + "  ");
+   }
 }
