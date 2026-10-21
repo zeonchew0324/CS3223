@@ -88,21 +88,6 @@ public class GroupByScan implements Scan {
       }
       return true;
    }
-   // public boolean next() {
-   //    if (!moregroups)
-   //       return false;
-   //    for (AggregationFn fn : aggfns)
-   //       fn.processFirst(s);
-   //    groupval = new GroupValue(s, groupfields);
-   //    while(moregroups = s.next()) {
-   //       GroupValue gv = new GroupValue(s, groupfields);
-   //       if (!groupval.equals(gv))
-   //          break;
-   //       for (AggregationFn fn : aggfns)
-   //          fn.processNext(s);
-   //    }
-   //    return true;
-   // }
    
    /**
     * Close the scan by closing the underlying scan.

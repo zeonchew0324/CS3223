@@ -28,12 +28,6 @@ public class SimpleIJ {
       System.out.print("SQL> ");
       while (sc.hasNextLine()) {
          String cmd = sc.nextLine().trim();
-         // if (cmd.startsWith("exit"))
-         //    break;
-         // else if (cmd.startsWith("select"))
-         //    doQuery(planner, tx, cmd);
-         // else if (!cmd.isEmpty())
-         //    doUpdate(planner, tx, cmd);
          if (cmd.equalsIgnoreCase("exit")) {
             break;
          } else if (cmd.toLowerCase().startsWith("explain")) {
@@ -78,8 +72,7 @@ public class SimpleIJ {
                p.blocksAccessed(), FileMgr.blocksRead - readsBefore);
       }
       catch (Exception e) {
-         // System.out.println("SQL Exception: " + e.getMessage());
-         e.printStackTrace();
+         System.out.println("SQL Exception: " + e.getMessage());
       }
    }
 
@@ -150,11 +143,6 @@ public class SimpleIJ {
          } else {
             System.out.format("%" + width + "s", val.asString());
          }
-         // int fldtype = sch.type(fldname);
-         // if (fldtype == INTEGER)
-         //    System.out.format("%" + width + "d", s.getInt(fldname));
-         // else
-         //    System.out.format("%" + width + "s", s.getString(fldname));
       }
       System.out.println();
    }
