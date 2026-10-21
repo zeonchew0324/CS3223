@@ -24,7 +24,11 @@ public class FileMgr {
          		new File(dbDirectory, filename).delete();
    }
 
+   /** Number of blocks read from disk since startup; used for experiments. */
+   public static long blocksRead = 0;
+
    public synchronized void read(BlockId blk, Page p) {
+      blocksRead++;
       try {
          RandomAccessFile f = getFile(blk.fileName());
          f.seek(blk.number() * blocksize);

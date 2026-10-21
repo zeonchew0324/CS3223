@@ -66,16 +66,30 @@ class TablePlanner {
       Predicate joinpred = mypred.joinSubPred(myschema, currsch);
       if (joinpred == null)
          return null;
-      Plan p = makeIndexJoin(current, currsch);
-      if (p == null)
-         p = makeMergeJoin(current, currsch);
-      if (p == null)
-         p = makeHashJoin(current, currsch);
-      if (p == null)
-         p = makeNestedLoopsJoin(current, currsch);
-      if (p == null)
-         p = makeProductJoin(current, currsch);
-      return p;
+      switch (HeuristicQueryPlanner.joinMethod) {
+         case "index":  return makeIndexJoin(current, currsch);
+         case "merge":  return makeMergeJoin(current, currsch);
+         case "hash":   return makeHashJoin(current, currsch);
+         case "nested": return makeNestedLoopsJoin(current, currsch);
+         default:
+            return cheapest(makeIndexJoin(current, currsch),
+                            makeMergeJoin(current, currsch),
+                            makeHashJoin(current, currsch),
+                            makeNestedLoopsJoin(current, currsch));
+      }
+   }
+
+   /**
+    * Return the candidate plan with the lowest estimated
+    * block accesses, ignoring nulls. Returns null if every
+    * candidate is null.
+    */
+   private static Plan cheapest(Plan... candidates) {
+      Plan best = null;
+      for (Plan p : candidates)
+         if (p != null && (best == null || p.blocksAccessed() < best.blocksAccessed()))
+            best = p;
+      return best;
    }
 
    
