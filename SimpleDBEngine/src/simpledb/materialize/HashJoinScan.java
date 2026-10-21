@@ -8,7 +8,17 @@ import simpledb.record.Schema;
 import simpledb.tx.Transaction;
 
 public class HashJoinScan implements Scan {
-    private static final int NUM_PARTITIONS = 10;
+    /** Upper bound on partitions; the actual count is limited by free buffers. */
+    private static final int MAX_PARTITIONS = 10;
+
+    /**
+     * Number of partitions used for both inputs. Each partition keeps one
+     * scan open while an input is being partitioned, and the input's own
+     * scan needs buffers too (it may itself be a join), so the count is
+     * taken from the buffers still free after the first input is opened,
+     * capped at MAX_PARTITIONS. Both inputs must use the same count.
+     */
+    private int numPartitions = 0;
 
     private Plan p1, p2;
     private String fldname1, fldname2;
@@ -36,36 +46,49 @@ public class HashJoinScan implements Scan {
         this.parts2 = partitionInput(p2, fldname2, tx);
     }
 
+    /**
+     * Write every record of p into one of numPartitions temporary tables,
+     * chosen by hashing the join field. One scan per partition stays open
+     * for the whole pass, so each insert continues from the partition's
+     * current block instead of re-reading it from block 0.
+     */
     private TempTable[] partitionInput(Plan p, String fldname, Transaction tx) {
-        TempTable[] parts = new TempTable[NUM_PARTITIONS];
         Schema schema = p.schema();
 
-        for (int i = 0; i < NUM_PARTITIONS; i++) {
-            parts[i] = new TempTable(tx, schema);
+        // Open the input first: if it is itself a join, opening it may pin
+        // buffers (or partition its own inputs). Only then decide how many
+        // partition scans the remaining buffers can hold.
+        Scan src = p.open();
+        if (numPartitions == 0) {
+            numPartitions = Math.max(2, Math.min(MAX_PARTITIONS, tx.availableBuffs() - 2));
         }
 
-        Scan src = p.open();
+        TempTable[] parts = new TempTable[numPartitions];
+        UpdateScan[] dests = new UpdateScan[numPartitions];
 
         try {
+            for (int i = 0; i < numPartitions; i++) {
+                parts[i] = new TempTable(tx, schema);
+                dests[i] = parts[i].open();
+            }
+
             while (src.next()) {
                 Constant key = src.getVal(fldname);
-                int index = Math.floorMod(key.hashCode(), NUM_PARTITIONS);
+                UpdateScan dest = dests[Math.floorMod(key.hashCode(), numPartitions)];
 
-                UpdateScan dest = parts[index].open();
-
-                try {
-                    dest.insert();
-                    for (String fld : schema.fields()) {
-                        dest.setVal(fld, src.getVal(fld));
-                    }
-                }
-                finally {
-                    dest.close();
+                dest.insert();
+                for (String fld : schema.fields()) {
+                    dest.setVal(fld, src.getVal(fld));
                 }
             }
         }
         finally {
             src.close();
+            for (UpdateScan dest : dests) {
+                if (dest != null) {
+                    dest.close();
+                }
+            }
         }
 
         return parts;
@@ -119,7 +142,7 @@ public class HashJoinScan implements Scan {
                 continue;
             }
 
-            if (partition + 1 >= NUM_PARTITIONS) {
+            if (partition + 1 >= numPartitions) {
                 return false;
             }
 

@@ -66,17 +66,22 @@ class TablePlanner {
       Predicate joinpred = mypred.joinSubPred(myschema, currsch);
       if (joinpred == null)
          return null;
+      Plan p;
       switch (HeuristicQueryPlanner.joinMethod) {
-         case "index":  return makeIndexJoin(current, currsch);
-         case "merge":  return makeMergeJoin(current, currsch);
-         case "hash":   return makeHashJoin(current, currsch);
-         case "nested": return makeNestedLoopsJoin(current, currsch);
+         case "index":  p = makeIndexJoin(current, currsch); break;
+         case "merge":  p = makeMergeJoin(current, currsch); break;
+         case "hash":   p = makeHashJoin(current, currsch); break;
+         case "nested": p = makeNestedLoopsJoin(current, currsch); break;
          default:
-            return cheapest(makeIndexJoin(current, currsch),
-                            makeMergeJoin(current, currsch),
-                            makeHashJoin(current, currsch),
-                            makeNestedLoopsJoin(current, currsch));
+            p = cheapest(makeIndexJoin(current, currsch),
+                         makeMergeJoin(current, currsch),
+                         makeHashJoin(current, currsch),
+                         makeNestedLoopsJoin(current, currsch));
       }
+      // A forced method that does not apply to this table pair (for example
+      // "index" with no usable index) must still enforce the join predicate,
+      // so fall back to a product followed by a select on that predicate.
+      return p != null ? p : makeProductJoin(current, currsch);
    }
 
    /**

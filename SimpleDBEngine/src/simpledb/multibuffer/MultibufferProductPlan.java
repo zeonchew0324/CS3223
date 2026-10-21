@@ -112,4 +112,12 @@ public class MultibufferProductPlan implements Plan {
       dest.close();
       return t;
    }
+
+   @Override
+   public String describePlan(String indent) {
+      return indent + "MultibufferProductPlan [blocks=" + blocksAccessed()
+         + ", records=" + recordsOutput() + "]\n"
+         + lhs.describePlan(indent + "  ")
+         + rhs.describePlan(indent + "  ");
+   }
 }
