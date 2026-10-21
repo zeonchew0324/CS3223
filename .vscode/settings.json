@@ -1,0 +1,5 @@
+{
+    "java.project.referencedLibraries": [
+        "SimpleDBEngine/bin/**/*.class"
+    ]
+}
