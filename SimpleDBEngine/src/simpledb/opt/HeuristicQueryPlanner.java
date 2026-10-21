@@ -57,7 +57,6 @@ public class HeuristicQueryPlanner implements QueryPlanner {
       }
       
       // Step 4.  Project on the field names and return
-      // return new ProjectPlan(currentplan, data.fields());
       List<AggregationFn> aggfns = new ArrayList<>();
 
       for (simpledb.parse.AggregateData agg : data.aggregates()) {
@@ -107,7 +106,6 @@ public class HeuristicQueryPlanner implements QueryPlanner {
          result = new SortPlan(tx, result, data.sortFields());
       }
 
-      // return new ProjectPlan(currentplan, outputFields);
       return result;
    }
    
