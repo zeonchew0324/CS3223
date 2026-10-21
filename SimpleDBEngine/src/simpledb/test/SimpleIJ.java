@@ -4,6 +4,8 @@ import java.util.Scanner;
 
 import static java.sql.Types.INTEGER;
 
+import simpledb.file.FileMgr;
+import simpledb.opt.HeuristicQueryPlanner;
 import simpledb.plan.Plan;
 import simpledb.plan.Planner;
 import simpledb.query.Constant;
@@ -13,6 +15,9 @@ import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 
 public class SimpleIJ {
+   /** When false, rows are counted but not printed, so timings exclude console output. */
+   private static boolean printRows = true;
+
    public static void main(String[] args) {
       String dirname = (args.length == 0) ? "studentdb" : args[0];
       SimpleDB db = new SimpleDB(dirname);
@@ -32,7 +37,9 @@ public class SimpleIJ {
          if (cmd.equalsIgnoreCase("exit")) {
             break;
          } else if (cmd.toLowerCase().startsWith("explain")) {
-            doExplain(planner, tx, cmd.substring(8).trim());
+            doExplain(planner, tx, cmd.substring("explain".length()).trim());
+         } else if (cmd.toLowerCase().startsWith("set ")) {
+            doSet(cmd);
          } else if (cmd.toLowerCase().startsWith("select")) {
             doQuery(planner, tx, cmd);
          } else if (!cmd.isEmpty()) {
@@ -47,15 +54,28 @@ public class SimpleIJ {
 
    private static void doQuery(Planner planner, Transaction tx, String cmd) {
       try {
+         long readsBefore = FileMgr.blocksRead;
+         long t0 = System.nanoTime();
          Plan p = planner.createQueryPlan(cmd, tx);
+         long t1 = System.nanoTime();
+
          Scan s = p.open();
          Schema sch = p.schema();
-
-         printHeader(sch);
+         if (printRows)
+            printHeader(sch);
+         int rows = 0;
          while (s.next()) {
-            printRow(sch, s);
+            rows++;
+            if (printRows)
+               printRow(sch, s);
          }
          s.close();
+         long t2 = System.nanoTime();
+
+         System.out.format("%d rows | join=%s | plan %.1f ms | scan %.1f ms | est blocks %d | actual block reads %d%n",
+               rows, HeuristicQueryPlanner.joinMethod,
+               (t1 - t0) / 1e6, (t2 - t1) / 1e6,
+               p.blocksAccessed(), FileMgr.blocksRead - readsBefore);
       }
       catch (Exception e) {
          // System.out.println("SQL Exception: " + e.getMessage());
@@ -71,6 +91,28 @@ public class SimpleIJ {
       catch (Exception e) {
          System.out.println("SQL Exception: " + e.getMessage());
       }
+   }
+
+   /**
+    * Session settings for experiments:
+    *   set join auto|index|merge|hash|nested   restrict the planner's join method
+    *   set print on|off                        print result rows, or only count them
+    */
+   private static void doSet(String cmd) {
+      String[] parts = cmd.trim().toLowerCase().split("\\s+");
+      if (parts.length == 3 && parts[1].equals("join")) {
+         switch (parts[2]) {
+            case "auto": case "index": case "merge": case "hash": case "nested":
+               HeuristicQueryPlanner.joinMethod = parts[2];
+               System.out.println("join method = " + parts[2]);
+               return;
+         }
+      } else if (parts.length == 3 && parts[1].equals("print")) {
+         printRows = parts[2].equals("on");
+         System.out.println("print rows = " + printRows);
+         return;
+      }
+      System.out.println("usage: set join auto|index|merge|hash|nested  or  set print on|off");
    }
 
    private static void doExplain(Planner planner, Transaction tx, String cmd) {

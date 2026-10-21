@@ -119,4 +119,11 @@ public class IndexInfo {
       }
       return new Layout(sch);
    }
+
+   /**
+    * Return the index name and indexed field, for query plan display.
+    */
+   public String toString() {
+      return idxname + "(" + fldname + ")";
+   }
 }

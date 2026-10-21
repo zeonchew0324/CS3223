@@ -12,6 +12,15 @@ import simpledb.materialize.*;
  * @author Edward Sciore
  */
 public class HeuristicQueryPlanner implements QueryPlanner {
+   /**
+    * Join method the planner is restricted to.
+    * One of "auto", "index", "merge", "hash", "nested".
+    * "auto" builds every applicable join and keeps the one
+    * with the lowest estimated block accesses.
+    * Set from SimpleIJ with "set join <method>".
+    */
+   public static String joinMethod = "auto";
+
    private Collection<TablePlanner> tableplanners = new ArrayList<>();
    private MetadataMgr mdm;
    
