@@ -8,3 +8,5 @@ SimpleDBClients/studentdb/temp*.tbl
 SimpleDBEngine/out
 
 sources.txt
+
+experiments/
